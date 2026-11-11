@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # Run a trained policy on the real SO-101 (closed loop on both cameras + joint state).
-# Usage: PORT=/dev/ttyACM0 FRONT=0 WRIST=2 ./scripts/run_robot.sh [checkpoint_dir]
+# Same robot/camera settings as record_route.sh in joel-sgc/so101-abc-block-mover.
+# Usage: ./scripts/run_robot.sh [checkpoint_dir] [num_episodes] [episode_s]
+# Override device paths via env if the machine differs (FOLLOWER_PORT, FRONT, WRIST).
 set -euo pipefail
-CKPT="${1:-outputs/act_b_to_a/checkpoints/last/pretrained_model}"
-PORT="${PORT:?set PORT, e.g. /dev/ttyACM0}"
-FRONT="${FRONT:-0}"; WRIST="${WRIST:-2}"
-ROBOT_ID="${ROBOT_ID:-my_follower}"   # must match the calibration used when recording
+cd "$(dirname "$0")/.."
+./scripts/install_calibration.sh >/dev/null
+CKPT=${1:-outputs/act_b_to_a/checkpoints/last/pretrained_model}
+N=${2:-5}; EP=${3:-20}
+FOLLOWER_PORT=${FOLLOWER_PORT:-/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B7A001171-if00}
+FRONT=${FRONT:-/dev/v4l/by-id/usb-046d_Brio_101_2627APAAGJX8-video-index0}
+WRIST=${WRIST:-/dev/v4l/by-id/usb-Generic_USB_HD_Camera_200910120001-video-index0}
+CAM="{front: {type: opencv, index_or_path: $FRONT, width: 640, height: 480, fps: 30, fourcc: MJPG}, wrist: {type: opencv, index_or_path: $WRIST, width: 640, height: 480, fps: 30, fourcc: MJPG}}"
 exec uv run lerobot-record \
-  --robot.type=so101_follower --robot.port="$PORT" --robot.id="$ROBOT_ID" \
-  --robot.cameras="{ front: {type: opencv, index_or_path: $FRONT, width: 640, height: 480, fps: 30}, wrist: {type: opencv, index_or_path: $WRIST, width: 640, height: 480, fps: 30} }" \
-  --display_data=true \
-  --dataset.repo_id="local/eval_so101_ba_$(date +%s)" \
+  --robot.type=so101_follower --robot.id=trevor_follower \
+  --robot.port="$FOLLOWER_PORT" --robot.cameras="$CAM" \
+  --dataset.repo_id="local/eval_so101_ba" --dataset.root="outputs/eval_$(date +%s)" \
   --dataset.single_task="Move the block from spot B to spot A" \
-  --dataset.episode_time_s=20 --dataset.num_episodes=5 --dataset.push_to_hub=false \
-  --policy.path="$CKPT"
+  --dataset.num_episodes="$N" --dataset.episode_time_s="$EP" --dataset.reset_time_s=10 \
+  --dataset.push_to_hub=false --play_sounds=false \
+  --policy.path="$CKPT" --policy.device="${DEVICE:-cuda}"

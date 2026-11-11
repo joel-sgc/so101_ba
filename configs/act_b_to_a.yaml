@@ -4,9 +4,9 @@ dataset_repo_id: local/so101_ba # arbitrary local id
 task: "Move the block from spot B to spot A"   # filters episodes by task text
 val_episodes: 4                 # last N matching episodes held out for validation
 output_dir: outputs/act_b_to_a
-device: cuda                    # cuda | mps | cpu
+device: cuda                    # 5090 on the server
 steps: 100000
-batch_size: 16
+batch_size: 32
 num_workers: 4
 seed: 1000
 act:
