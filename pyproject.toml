@@ -1,0 +1,14 @@
+[project]
+name = "so101-ba"
+version = "0.1.0"
+description = "Imitation learning (ACT) for SO-101: move box from B to A using front + wrist cameras"
+requires-python = ">=3.10"
+dependencies = [
+  "lerobot[feetech]>=0.4",   # v3.0 dataset format; feetech = SO-101 motor driver
+  "pandas",
+  "pyarrow",
+  "pyyaml",
+]
+
+[tool.uv]
+package = false

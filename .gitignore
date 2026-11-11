@@ -1,0 +1,11 @@
+# dataset (lives on the server / in this folder, never committed)
+/data/
+/meta/
+/videos/
+# artifacts
+/outputs/
+.venv/
+__pycache__/
+*.pt
+*.safetensors
+wandb/

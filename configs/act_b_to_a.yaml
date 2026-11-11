@@ -1,0 +1,19 @@
+# Training config for scripts/train.py
+dataset_root: .                 # dataset (data/ meta/ videos/) is this repo folder
+dataset_repo_id: local/so101_ba # arbitrary local id
+task: "Move the block from spot B to spot A"   # filters episodes by task text
+val_episodes: 4                 # last N matching episodes held out for validation
+output_dir: outputs/act_b_to_a
+device: cuda                    # cuda | mps | cpu
+steps: 100000
+batch_size: 16
+num_workers: 4
+seed: 1000
+act:
+  chunk_size: 100               # predicts 100 future actions (~3.3s) -> smooth, closed-loop
+  n_action_steps: 100
+  vision_backbone: resnet18
+  kl_weight: 10.0
+# Random crop/color/sharpness jitter on both cameras. This is the main thing that
+# makes the policy tolerate the box being slightly off its usual spot.
+image_augmentation: true
